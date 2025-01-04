@@ -1,0 +1,98 @@
+/* General styles */
+.signup-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f0faf0; /* Light green background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.signup-header {
+    text-align: center;
+    color: #2e7d32; /* Dark green text */
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+/* Form styles */
+.mb-3 {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #2e7d32; /* Dark green text */
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #a5d6a7; /* Light green border */
+    border-radius: 5px;
+    font-size: 16px;
+    color: #2e7d32; /* Dark green text */
+    background-color: #e8f5e9; /* Very light green background */
+}
+
+.form-control:focus {
+    border-color: #66bb6a; /* Medium green border on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(102, 187, 106, 0.5); /* Green shadow on focus */
+}
+
+.form-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #a5d6a7; /* Light green border */
+    border-radius: 5px;
+    font-size: 16px;
+    color: #2e7d32; /* Dark green text */
+    background-color: #e8f5e9; /* Very light green background */
+}
+
+.form-select:focus {
+    border-color: #66bb6a; /* Medium green border on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(102, 187, 106, 0.5); /* Green shadow on focus */
+}
+
+/* Button styles */
+.btn-signup {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4caf50; /* Medium green background */
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-signup:hover {
+    background-color: #388e3c;
+}
+
+.btn-link {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    background-color: #66bb6a;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-link:hover {
+    background-color: #4caf50; /* Darker green on hover */
+}
+
+/* Error message styles */
+/*p[style*="color: red"] {
+    color: #d32f2f !important;  Red color for error messages 
+    font-weight: bold;
+}*/

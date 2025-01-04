@@ -1,0 +1,149 @@
+@page "/debit"
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+
+
+@inject NavigationManager NavigationManager
+@inject Database DatabaseService
+
+<link href="css/Outflow.css" rel="stylesheet" />
+
+<div class="account-debit-container">
+    <h2>Account Debit</h2>
+    <div class="summary-cards">
+        <div class="card">
+            <h3>Current Balance</h3>
+            <p>Rs @currentBalance</p>
+        </div>
+        <div class="card">
+            <h3>Total Transactions</h3>
+            <p>@totalTransactions</p>
+        </div>
+        <div class="card">
+            <h3>Your Expenditures</h3>
+            <p>Rs @totalExpenditure</p>
+            <button @onclick="NavigateToAddExpenditure" style="margin-top: 10px;">Add Expenditure</button>
+        </div>
+    </div>
+
+    <h3>Transactions</h3>
+    @if (filteredOutflows == null)
+    {
+        <p>Loading transactions...</p>
+    }
+    else if (!filteredOutflows.Any())
+    {
+        <p>No transactions found.</p>
+    }
+    else
+    {
+        <table class="transaction-table">
+            <thead>
+                <tr>
+                    <th>Transaction Title</th>
+                    <th>
+                        Date
+                        <button @onclick="SortByDateAsc">↑</button>
+                        <button @onclick="SortByDateDesc">↓</button>
+                    </th>
+                    <th>
+                        Amount
+                        <button @onclick="SortByAmountAsc">↑</button>
+                        <button @onclick="SortByAmountDesc">↓</button>
+                    </th>
+                    <th>Label</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var outflow in filteredOutflows)
+                {
+                    <tr>
+                        <td>@outflow.TansactionLabel</td>
+                        <td>@outflow.Date.ToString("yyyy/MM/dd")</td>
+                        <td>Rs @outflow.Amount</td>
+                        <td>@outflow.Label</td>
+                        <td>@outflow.Note</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Outflow> outflows;
+    private List<Outflow> filteredOutflows;
+    private int currentBalance;
+    private int totalTransactions => filteredOutflows?.Count ?? 0;
+    private int totalExpenditure => filteredOutflows?.Sum(o => o.Amount) ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOutflowsAsync();
+        await LoadUserBalanceAsync();
+    }
+
+    private async Task LoadOutflowsAsync()
+    {
+        try
+        {
+            outflows = await DatabaseService.GetAllOutflowsAsync();
+            filteredOutflows = outflows;
+        }
+        catch
+        {
+            outflows = new List<Outflow>();
+            filteredOutflows = new List<Outflow>(); 
+        }
+    }
+
+    private async Task LoadUserBalanceAsync()
+    {
+        try
+        {
+            var users = await DatabaseService.GetAllUsersAsync();
+            var currentUser = users.FirstOrDefault();
+
+            if (currentUser != null)
+            {
+                currentBalance = currentUser.Balance;
+            }
+            else
+            {
+                currentBalance = 0; 
+                Console.WriteLine("No user found in the database.");
+            }
+        }
+        catch
+        {
+            currentBalance = 0; 
+            Console.WriteLine("Error fetching user balance.");
+        }
+    }
+
+    private void SortByDateAsc()
+    {
+        filteredOutflows = outflows.OrderBy(o => o.Date).ToList();
+    }
+
+    private void SortByDateDesc()
+    {
+        filteredOutflows = outflows.OrderByDescending(o => o.Date).ToList();
+    }
+
+    private void SortByAmountAsc()
+    {
+        filteredOutflows = outflows.OrderBy(o => o.Amount).ToList();
+    }
+
+    private void SortByAmountDesc()
+    {
+        filteredOutflows = outflows.OrderByDescending(o => o.Amount).ToList();
+    }
+
+    private void NavigateToAddExpenditure()
+    {
+        NavigationManager.NavigateTo("/spending");
+    }
+}

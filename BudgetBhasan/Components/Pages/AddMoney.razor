@@ -1,0 +1,90 @@
+@page "/addmoney"
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+
+
+@inject Database DatabaseService
+@inject NavigationManager Navigation
+
+<link href="css/AddMoney.css" rel="stylesheet" />
+<h3>Add Money</h3>
+<div class="add-money-form">
+    <div>
+        <label>Transaction Title: </label>
+        <input @bind="transactionTitle" />
+    </div>
+    <div>
+        <label>Amount: </label>
+        <input type="number" @bind="amount" />
+    </div>
+    <div>
+        <label>Label: </label>
+        <input @bind="label" />
+    </div>
+    <div>
+        <label>Note: </label>
+        <textarea @bind="note"></textarea>
+    </div>
+    <div>
+        <label>Date: </label>
+        <input type="date" @bind="transactionDate" />
+    </div>
+    <button @onclick="AddCash">Add Money</button>
+</div>
+
+@code {
+    private string transactionTitle;
+    private int amount;
+    private string label;
+    private string note;
+    private DateTime transactionDate = DateTime.Today;
+
+    private async Task AddCash()
+    {
+        // Retrieve the only user from the database
+        var users = await DatabaseService.GetAllUsersAsync();
+        var currentUser = users.FirstOrDefault();
+
+        if (currentUser == null)
+        {
+            Console.WriteLine("No user found in the database.");
+            return;
+        }
+
+        // Print current user details in terminal for debugging
+        Console.WriteLine($"User Found: Id={currentUser.Id}, Balance={currentUser.Balance}");
+
+        // Update user balance in User table
+        currentUser.Balance += amount;
+        var updateSuccess = await DatabaseService.UpdateUserAsync(currentUser);
+
+        if (!updateSuccess)
+        {
+            Console.WriteLine("Failed to update user balance.");
+            return;
+        }
+        
+        var inflow = new Inflow
+        {
+            TansactionTitle = transactionTitle,
+            Amount = amount,
+            Label = label,
+            Note = note,
+            Date = transactionDate
+        };
+        
+        //Adding the value user entered in form into the database
+        var inflowSuccess = await DatabaseService.AddInflowAsync(inflow);
+
+        //If inflow is succeded in terminal success message comes and user is navigated to CashInflow Page.
+        if (inflowSuccess)
+        {
+            Console.WriteLine("Money added successfully.");
+            Navigation.NavigateTo("/inflow");
+        }
+        else
+        {
+            Console.WriteLine("Failed to add inflow.");
+        }
+    }
+}

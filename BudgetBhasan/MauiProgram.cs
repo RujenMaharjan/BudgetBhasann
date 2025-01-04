@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using MudBlazor.Services;
+using BudgetBhasan.Services;
 
 namespace BudgetBhasan;
 
@@ -17,6 +19,13 @@ public static class MauiProgram
         builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 #endif
+
+        // Register Database as a singleton
+        builder.Services.AddSingleton<Database>();
+        
+
+        // Register AuthenticationService (already included in your code)
+        builder.Services.AddSingleton<AuthenticationService>();
 
         return builder.Build();
     }

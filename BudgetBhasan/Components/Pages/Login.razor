@@ -1,0 +1,58 @@
+@page "/login"
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+@using BudgetBhasan.Utils
+@layout Layout.LoginLayout
+
+@inject NavigationManager Navigation
+@inject AuthenticationService AuthService
+
+<link href="css/Login.css" rel="stylesheet" />
+
+<div class="login-container">
+    <h3 class="login-header">Login to BudgetBhasan</h3>
+    <EditForm Model="user" OnValidSubmit="HandleLogin">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username:</label>
+            <InputText id="username" @bind-Value="user.Username" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <InputText id="password" @bind-Value="user.Password" type="password" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <button type="submit" class="btn-login">Login</button>
+        </div>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <p class="text-danger">@errorMessage</p>
+        }
+    </EditForm>
+</div>
+
+@code {
+    private User user = new User();
+    private string errorMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        // Validate inputs
+        if (!LoginValidation.IsValidInput(user.Username) || !LoginValidation.IsValidInput(user.Password))
+        {
+            errorMessage = "All fields are required.";
+            return;
+        }
+
+        // Call the AuthenticationService to check user credentials
+        var isAuthenticated = await AuthService.AuthenticateAsync(user);
+        
+        if (isAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard");
+        }
+        else
+        {
+            errorMessage = "Invalid username or password.";
+        }
+    }
+}

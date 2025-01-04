@@ -1,0 +1,106 @@
+@page "/spending"
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+
+
+@inject Database DatabaseService
+@inject NavigationManager NavigationManager
+
+<link href="css/DeductMoney.css" rel="stylesheet" />
+
+<h3>Spending Money Form</h3>
+
+<div class="spending-form-container">
+    <label for="transactionLabel">Transaction Label:</label>
+    <input id="transactionLabel" type="text" @bind="transactionLabel" />
+
+    <label for="date">Date:</label>
+    <input id="date" type="date" @bind="date" />
+
+    <label for="amount">Amount:</label>
+    <input id="amount" type="number" @bind="amount" />
+
+    <label for="label">Label:</label>
+    <input id="label" type="text" @bind="label" />
+
+    <label for="note">Note:</label>
+    <textarea id="note" @bind="note"></textarea>
+
+    <button @onclick="SubmitForm">Submit</button>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color: red;">@errorMessage</p>
+    }
+</div>
+
+@code {
+    private string transactionLabel;
+    private DateTime date = DateTime.Now;
+    private int amount;
+    private string label;
+    private string note;
+    private string errorMessage;
+
+    private async Task SubmitForm()
+    {
+        errorMessage = string.Empty;
+        
+        if (string.IsNullOrWhiteSpace(transactionLabel) || amount <= 0)
+        {
+            errorMessage = "Please fill in all required fields.";
+            return;
+        }
+
+        // getting the only user
+        var users = await DatabaseService.GetAllUsersAsync();
+        var user = users.FirstOrDefault();
+
+        if (user == null)
+        {
+            errorMessage = "User not found. Please ensure the database is set up correctly.";
+            return;
+        }
+
+        // Check for sufficient balance to continue the transaction
+        if (amount > user.Balance)
+        {
+            errorMessage = "Transaction couldn't be completed due to insufficient balance.";
+            return;
+        }
+
+        // Deduct the amount from the user's balance in user table
+        user.Balance -= amount;
+        bool isUserUpdated = await DatabaseService.UpdateUserAsync(user);
+
+        if (!isUserUpdated)
+        {
+            errorMessage = "Failed to update user balance. Please try again.";
+            return;
+        }
+
+        // Add the transaction to the Outflow table in database
+        var outflow = new Outflow
+        {
+            TansactionLabel = transactionLabel,
+            Date = date,
+            Amount = amount,
+            Label = label,
+            Note = note
+        };
+
+        bool isTransactionAdded = await DatabaseService.AddOutflowAsync(outflow);
+
+        if (isTransactionAdded)
+        {
+            Console.WriteLine("Transaction added successfully.");
+            NavigationManager.NavigateTo("/debit"); // Redirect to the debit page
+        }
+        else
+        {
+            errorMessage = "Failed to add transaction. Please try again.";
+            // Revert the balance deduction if transaction fails
+            user.Balance += amount;
+            await DatabaseService.UpdateUserAsync(user);
+        }
+    }
+}

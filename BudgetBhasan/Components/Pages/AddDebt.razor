@@ -1,0 +1,76 @@
+@page "/adddebt"
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+
+
+@inject Database DatabaseService
+@inject NavigationManager NavigationManager
+
+<link href="css/AddDebt.css" rel="stylesheet" />
+<h3>Add Debt</h3>
+<div class="add-debt-form">
+    <div>
+        <label>Taken From:</label>
+        <input @bind="takenFrom" />
+    </div>
+    <div>
+        <label>Amount:</label>
+        <input type="number" @bind="amount" />
+    </div>
+    <div>
+        <label>Date Taken:</label>
+        <input type="date" @bind="dateTaken" />
+    </div>
+    <div>
+        <label>Due Date:</label>
+        <input type="date" @bind="dueDate" />
+    </div>
+    <button @onclick="SaveDebt">Save</button>
+</div>
+
+@code {
+    private string takenFrom;
+    private int amount;
+    private DateTime dateTaken = DateTime.Now;
+    private DateTime dueDate= DateTime.Now;
+    
+    //When Save button is clicked This method is called
+    private async Task SaveDebt()
+    {
+        try
+        {
+            var debt = new Debt
+            {
+                TakenFrom = takenFrom,
+                Amount = amount,
+                DateTaken = dateTaken,
+                DueDate = dueDate,
+                IsPaid = "False"
+            };
+
+            //Add the debt to debt table of database
+            var success = await DatabaseService.AddDebtAsync(debt);
+
+            if (success)
+            {
+                // Update the user's main balance in user table
+                var users = await DatabaseService.GetAllUsersAsync();
+                var currentUser = users.FirstOrDefault();
+                if (currentUser != null)
+                {
+                    currentUser.Balance += amount; 
+                    await DatabaseService.UpdateUserAsync(currentUser);
+                }
+                NavigationManager.NavigateTo("/debt");
+            }
+            else
+            {
+                Console.WriteLine("Failed to save debt.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving debt: {ex.Message}");
+        }
+    }
+}

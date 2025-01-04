@@ -1,0 +1,69 @@
+﻿@page "/"
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+@layout Layout.LoginLayout
+
+@inject NavigationManager Navigation
+@inject Database Database
+
+
+<link href="css/Register.css" rel="stylesheet" />
+
+<div class="signup-container">
+    <h3 class="signup-header">Sign Up</h3>
+    <EditForm Model="user" OnValidSubmit="HandleSignup">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username:</label>
+            <InputText id="username" @bind-Value="user.Username" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <InputText id="password" @bind-Value="user.Password" type="password" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <InputText id="email" @bind-Value="user.email" type="email" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label for="currency" class="form-label">Preferred Currency:</label>
+            <InputSelect id="currency" @bind-Value="user.prefferedCurrency" class="form-select">
+                <option value="Rs">Rs</option>
+                <option value="AUD">AUD</option>
+                <option value="USD">USD</option>
+            </InputSelect>
+        </div>
+        <div class="mb-3">
+            <button type="submit" class="btn-signup">Sign Up</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private User user = new User();
+    private bool isUserRegistered;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if a user is already registered
+        var allUsers = await Database.GetAllUsersAsync();
+        isUserRegistered = allUsers.Any();
+        
+        //if user is already registered directly transferring them to login page to avoid multiple register as our coursework allows only one register
+        if (isUserRegistered)
+        {
+            // Redirect to login if a user is already registered
+            Navigation.NavigateTo("/login");
+        }
+    }
+
+    private async Task HandleSignup()
+    {
+        var success = await Database.AddUserAsync(user);
+
+        if (success)
+        {
+            // Redirect to a login page after successful signup
+            Navigation.NavigateTo("/login");
+        }
+    }
+}
