@@ -1,6 +1,201 @@
 @page "/dashboard"
-<h3>Dashboard</h3>
+@using MudBlazor
+@using BudgetBhasan.Services
+@using BudgetBhasan.Models
+@inject Database DatabaseService
+@inject NavigationManager NavigationManager
+
+
+<div class="d-flex justify-end mb-4">
+    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight">
+        <ActivatorContent>
+            <MudButton Color="Color.Primary" Variant="Variant.Text">
+                Hi, @currentUser?.Username
+            </MudButton>
+        </ActivatorContent>
+        <ChildContent>
+            <MudMenuItem OnClick="Logout">Logout</MudMenuItem>
+        </ChildContent>
+    </MudMenu>
+</div>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudDateRangePicker @bind-DateRange="dateRange" 
+                        Label="Filter by Date Range" 
+                        Class="mb-4"/>
+    <MudButton Variant="Variant.Filled" 
+               Color="Color.Primary" 
+               OnClick="ApplyDateFilter" 
+               Class="mb-4 ml-4">Apply Filter</MudButton>
+</MudPaper>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudChart ChartType="ChartType.Bar" 
+              ChartSeries="@outflowSeries" 
+              XAxisLabels="@topOutflowsLabels" 
+              Width="100%" 
+              Height="350px" />
+    <h3>Top 5 Outflows</h3>
+</MudPaper>
+
+<MudPaper Class="pa-4">
+    <MudChart ChartType="ChartType.Pie"
+              ChartSeries="@inflowSeries"
+              LegendPosition="Position.Right"
+              InputLabels="@inflowLabels"
+              InputData="@inflowData"
+              Width="100%" 
+              Height="350px" />
+    <h3>Top 5 Inflows</h3>
+</MudPaper>
+
+<MudPaper Class="pa-4 mt-4">
+    <MudChart ChartType="ChartType.Bar"
+              ChartSeries="@debtSeries"
+              XAxisLabels="@topDebtLabels"
+              Width="100%"
+              Height="350px" />
+    <h3>Top 5 Debts</h3>
+</MudPaper>
 
 @code {
-    //Under Construction
+    private DateRange dateRange = new DateRange(null, null);
+    private string[] topOutflowsLabels = new[] { "Loading..." };
+    private string[] inflowLabels = Array.Empty<string>();
+    private double[] inflowData = Array.Empty<double>();
+    private string[] topDebtLabels = new[] { "Loading..." };
+    private List<ChartSeries> outflowSeries = new();
+    private List<ChartSeries> inflowSeries = new();
+    private List<ChartSeries> debtSeries = new();
+    private User currentUser;
+
+    // Store full data sets
+    private List<Outflow> allOutflows = new();
+    private List<Inflow> allInflows = new();
+    private List<Debt> allDebts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUser = await DatabaseService.GetUserAsync();
+        await LoadAllData();
+        await UpdateCharts();
+    }
+    
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/login", true);  // Added true for force reload
+    }
+
+    private async Task LoadAllData()
+    {
+        allOutflows = await DatabaseService.GetAllOutflowsAsync();
+        allInflows = await DatabaseService.GetAllInflowsAsync();
+        allDebts = await DatabaseService.GetAllDebtsAsync();
+    }
+
+    private async Task ApplyDateFilter()
+    {
+        await UpdateCharts();
+    }
+
+    private async Task UpdateCharts()
+    {
+        var filteredOutflows = FilterDataByDateRange(allOutflows);
+        var filteredInflows = FilterDataByDateRange(allInflows);
+        var filteredDebts = FilterDataByDateRange(allDebts);
+
+        await UpdateOutflowChart(filteredOutflows);
+        await UpdateInflowChart(filteredInflows);
+        await UpdateDebtChart(filteredDebts);
+
+        StateHasChanged();
+    }
+
+    private List<T> FilterDataByDateRange<T>(List<T> data) where T : class
+    {
+        if (!dateRange.Start.HasValue || !dateRange.End.HasValue)
+            return data;
+
+        var startDate = dateRange.Start.Value.Date;
+        var endDate = dateRange.End.Value.Date.AddDays(1).AddTicks(-1);
+
+        return data.Where(item =>
+        {
+            DateTime itemDate = item switch
+            {
+                Outflow o => o.Date,
+                Inflow i => i.Date,
+                Debt d => d.DateTaken,  
+                _ => DateTime.MinValue
+            };
+            return itemDate >= startDate && itemDate <= endDate;
+        }).ToList();
+    }
+
+    private async Task UpdateOutflowChart(List<Outflow> filteredOutflows)
+    {
+        var topOutflows = filteredOutflows
+            .OrderByDescending(o => o.Amount)
+            .Take(5)
+            .ToList();
+
+        topOutflowsLabels = topOutflows
+            .Select(o => o.TansactionLabel ?? "Unnamed")
+            .ToArray();
+
+        var chartData = topOutflows
+            .Select(o => (double)o.Amount)
+            .ToArray();
+
+        outflowSeries = new List<ChartSeries>
+        {
+            new ChartSeries 
+            { 
+                Name = "Outflows", 
+                Data = chartData
+            }
+        };
+    }
+
+    private async Task UpdateInflowChart(List<Inflow> filteredInflows)
+    {
+        var groupedInflows = filteredInflows
+            .GroupBy(i => i.TansactionTitle ?? "Unnamed")
+            .Select(g => new
+            {
+                Label = g.Key,
+                TotalAmount = g.Sum(i => i.Amount)
+            })
+            .OrderByDescending(g => g.TotalAmount)
+            .Take(5)
+            .ToList();
+
+        inflowLabels = groupedInflows.Select(g => g.Label).ToArray();
+        inflowData = groupedInflows.Select(g => (double)g.TotalAmount).ToArray();
+    }
+
+    private async Task UpdateDebtChart(List<Debt> filteredDebts)
+    {
+        var topDebts = filteredDebts
+            .OrderByDescending(d => d.Amount)
+            .Take(5)
+            .ToList();
+
+        topDebtLabels = topDebts
+            .Select(d => d.TakenFrom ?? "Unknown")
+            .ToArray();
+
+        var chartData = topDebts
+            .Select(d => (double)d.Amount)
+            .ToArray();
+
+        debtSeries = new List<ChartSeries>
+        {
+            new ChartSeries 
+            { 
+                Name = "Debts", 
+                Data = chartData
+            }
+        };
+    }
 }

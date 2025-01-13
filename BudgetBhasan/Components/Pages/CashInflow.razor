@@ -9,11 +9,11 @@
 <link href="css/Inflow.css" rel="stylesheet" />
 
 <div class="account-credit-container">
-<h2>Cash Inflow</h2>
+<h2>Account Credit</h2>
 <div class="summary-cards">
     <div class="card">
         <h3>Current Balance</h3>
-        <p>Rs @currentBalance</p>
+        <p>@prefferedCurrency @currentBalance</p>
     </div>
     <div class="card">
         <h3>Total Transactions</h3>
@@ -21,12 +21,12 @@
     </div>
     <div class="card">
         <h3>Your Income</h3>
-        <p>Rs @totalIncome</p>
+        <p>@prefferedCurrency @totalIncome</p>
         <button @onclick="NavigateToAddMoney">Add Balance</button>
     </div>
 </div>
 
-<h3>Transactions</h3>
+<h3>Inflow Transactions</h3>
 <table class="transaction-table">
     <thead>
     <tr>
@@ -51,7 +51,7 @@
         <tr>
             <td>@inflow.TansactionTitle</td>
             <td>@inflow.Date.ToString("yyyy/MM/dd")</td>
-            <td>@inflow.Amount</td>
+            <td>@prefferedCurrency @inflow.Amount</td>
             <td>@inflow.Label</td>
             <td>@inflow.Note</td>
         </tr>
@@ -63,6 +63,7 @@
 @code {
     private List<Inflow> inflows = new();
     private int currentBalance;
+    private string prefferedCurrency;
     private int totalTransactions => inflows.Count;
     private int totalIncome => inflows.Where(i => i.Amount > 0).Sum(i => i.Amount);
     private List<Inflow> filteredInflows = new();
@@ -81,6 +82,7 @@
         if (currentUser != null)
         {
             currentBalance = currentUser.Balance;
+            prefferedCurrency = currentUser.prefferedCurrency;
         }
         //if there is no user in database
         else

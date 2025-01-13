@@ -2,11 +2,9 @@
 @using BudgetBhasan.Models
 @using BudgetBhasan.Services
 
-
 @inject Database DatabaseService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-
 
 <link href="css/Debt.css" rel="stylesheet" />
 
@@ -15,16 +13,20 @@
     <div class="summary-cards">
         <div class="card">
             <h3>Current Balance</h3>
-            <p>Rs @currentBalance</p>
+            <p>@prefferedCurrency @currentBalance</p>
+        </div>
+        <div class="card">
+            <h3>Number of Unpaid Debts</h3>
+            <p>@numberOfUnpaidDebts</p>
         </div>
         <div class="card">
             <h3>Your Remaining Debts</h3>
-            <p>Rs @totalUnpaidDebt</p>
+            <p>@prefferedCurrency @totalUnpaidDebt</p>
             <button @onclick="NavigateToAddDebt">Take Debt</button>
         </div>
     </div>
 
-    <h3>Transactions</h3>
+    <h3>Debt Transactions</h3>
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <div class="error-message">@errorMessage</div>
@@ -45,12 +47,18 @@
                     <th>Taken From</th>
                     <th>
                         Date Taken 
+                        <button @onclick="SortByDateTakenAsc">↑</button>
+                        <button @onclick="SortByDateTakenDesc">↓</button>
                     </th>
                     <th>
                         Due Date
+                        <button @onclick="SortByDueDateAsc">↑</button>
+                        <button @onclick="SortByDueDateDesc">↓</button>
                     </th>
                     <th>
                         Amount
+                        <button @onclick="SortByAmountAsc">↑</button>
+                        <button @onclick="SortByAmountDesc">↓</button>
                     </th>
                     <th>Repay</th>
                 </tr>
@@ -62,7 +70,7 @@
                         <td>@debt.TakenFrom</td>
                         <td>@debt.DateTaken.ToString("yyyy/MM/dd")</td>
                         <td>@debt.DueDate.ToString("yyyy/MM/dd")</td>
-                        <td>Rs @debt.Amount</td>
+                        <td>@prefferedCurrency @debt.Amount</td>
                         <td>
                             <button @onclick="() => ConfirmRepayment(debt)">Repay</button>
                         </td>
@@ -77,13 +85,27 @@
     private List<Debt> debts;
     private int currentBalance;
     private int totalUnpaidDebt;
+    private int numberOfUnpaidDebts;
     private string errorMessage;
-    private List<Outflow> filteredDebts;
+    private string prefferedCurrency;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUserBalanceAsync();
         await LoadDebtsAsync();
+        var users = await DatabaseService.GetAllUsersAsync();
+        var currentUser = users.FirstOrDefault();
+        if (currentUser != null)
+        {
+            currentBalance = currentUser.Balance;
+            prefferedCurrency = currentUser.prefferedCurrency;
+        }
+        //if there is no user in database
+        else
+        {
+            currentBalance = 0;
+            Console.WriteLine("No user found in the database.");
+        }
     }
 
     private async Task LoadUserBalanceAsync()
@@ -96,6 +118,7 @@
             if (currentUser != null)
             {
                 currentBalance = currentUser.Balance;
+                prefferedCurrency = currentUser.prefferedCurrency;
             }
             else
             {
@@ -117,16 +140,17 @@
             var allDebts = await DatabaseService.GetAllDebtsAsync();
             debts = allDebts.Where(d => d.IsPaid == "False").ToList();
             totalUnpaidDebt = debts.Sum(d => d.Amount);
+            numberOfUnpaidDebts = debts.Count;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading debts: {ex.Message}");
             debts = new List<Debt>();
             totalUnpaidDebt = 0;
+            numberOfUnpaidDebts = 0;
         }
     }
-    
-    //When repay button is clicked confirming if user really wants to repay his/her debt
+
     private async Task ConfirmRepayment(Debt debt)
     {
         bool isConfirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to repay Rs {debt.Amount}?");
@@ -138,15 +162,12 @@
 
     private async Task HandleRepayment(Debt debt)
     {
-        //Checking if user's balance is greater than user's debt amount
         if (currentBalance >= debt.Amount)
         {
             try
             {
-                // Deducting the amount from the user's balance in user table
                 currentBalance -= debt.Amount;
 
-                // Update the user's balance in the user table in database
                 var users = await DatabaseService.GetAllUsersAsync();
                 var currentUser = users.FirstOrDefault();
                 if (currentUser != null)
@@ -155,15 +176,13 @@
                     await DatabaseService.UpdateUserAsync(currentUser);
                 }
 
-                // Mark the debt as paid using DebtId
                 var debtToUpdate = await DatabaseService.GetDebtByIdAsync(debt.debtId);
                 if (debtToUpdate != null)
                 {
-                    debtToUpdate.IsPaid = "true"; // Changing the value of isPaid to true when debt is paid inorder to remove from debt table and showing data in debt history page
+                    debtToUpdate.IsPaid = "true";
                     await DatabaseService.UpdateDebtAsync(debtToUpdate);
                 }
 
-                // Reload debts and clear error message
                 await LoadDebtsAsync();
                 errorMessage = string.Empty;
             }
@@ -178,8 +197,39 @@
             errorMessage = "Not enough money to repay this debt.";
         }
     }
+
     private void NavigateToAddDebt()
     {
         NavigationManager.NavigateTo("/adddebt");
+    }
+
+    private void SortByDateTakenAsc()
+    {
+        debts = debts.OrderBy(d => d.DateTaken).ToList();
+    }
+
+    private void SortByDateTakenDesc()
+    {
+        debts = debts.OrderByDescending(d => d.DateTaken).ToList();
+    }
+
+    private void SortByDueDateAsc()
+    {
+        debts = debts.OrderBy(d => d.DueDate).ToList();
+    }
+
+    private void SortByDueDateDesc()
+    {
+        debts = debts.OrderByDescending(d => d.DueDate).ToList();
+    }
+
+    private void SortByAmountAsc()
+    {
+        debts = debts.OrderBy(d => d.Amount).ToList();
+    }
+
+    private void SortByAmountDesc()
+    {
+        debts = debts.OrderByDescending(d => d.Amount).ToList();
     }
 }

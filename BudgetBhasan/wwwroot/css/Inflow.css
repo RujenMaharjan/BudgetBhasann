@@ -125,3 +125,18 @@ h3 {
     background-color: #2e7d32; /* Even darker green on click */
     transform: scale(0.95); /* Slightly shrink on click */
 }
+
+.transaction-table button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4caf50; /* Medium green background */
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.transaction-table button:hover {
+    background-color: #388e3c; /* Darker green on hover */
+}

@@ -13,7 +13,7 @@
     <div class="summary-cards">
         <div class="card">
             <h3>Current Balance</h3>
-            <p>Rs @currentBalance</p>
+            <p>@prefferedCurrency @currentBalance</p>
         </div>
         <div class="card">
             <h3>Total Transactions</h3>
@@ -21,12 +21,12 @@
         </div>
         <div class="card">
             <h3>Your Expenditures</h3>
-            <p>Rs @totalExpenditure</p>
+            <p>@prefferedCurrency @totalExpenditure</p>
             <button @onclick="NavigateToAddExpenditure" style="margin-top: 10px;">Add Expenditure</button>
         </div>
     </div>
 
-    <h3>Transactions</h3>
+    <h3>Outflow Transactions</h3>
     @if (filteredOutflows == null)
     {
         <p>Loading transactions...</p>
@@ -61,7 +61,7 @@
                     <tr>
                         <td>@outflow.TansactionLabel</td>
                         <td>@outflow.Date.ToString("yyyy/MM/dd")</td>
-                        <td>Rs @outflow.Amount</td>
+                        <td>@prefferedCurrency @outflow.Amount</td>
                         <td>@outflow.Label</td>
                         <td>@outflow.Note</td>
                     </tr>
@@ -74,6 +74,7 @@
 @code {
     private List<Outflow> outflows;
     private List<Outflow> filteredOutflows;
+    private string prefferedCurrency;
     private int currentBalance;
     private int totalTransactions => filteredOutflows?.Count ?? 0;
     private int totalExpenditure => filteredOutflows?.Sum(o => o.Amount) ?? 0;
@@ -108,6 +109,7 @@
             if (currentUser != null)
             {
                 currentBalance = currentUser.Balance;
+                prefferedCurrency = currentUser.prefferedCurrency;
             }
             else
             {

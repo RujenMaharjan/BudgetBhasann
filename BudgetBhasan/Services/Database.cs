@@ -173,6 +173,11 @@ public class Database
             return null;
         }
     }
-
+    
+    //get user data
+    public async Task<User> GetUserAsync()
+    {
+        return await _database.Table<User>().FirstOrDefaultAsync();
+    }
 }
 

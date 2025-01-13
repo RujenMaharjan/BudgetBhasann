@@ -27,9 +27,10 @@
         <div class="mb-3">
             <label for="currency" class="form-label">Preferred Currency:</label>
             <InputSelect id="currency" @bind-Value="user.prefferedCurrency" class="form-select">
-                <option value="Rs">Rs</option>
-                <option value="AUD">AUD</option>
-                <option value="USD">USD</option>
+                <option value="">--Select your currency--</option>
+                <option value="Rs">Rupees</option>
+                <option value="$">USD</option>
+                <option value="£">Great Britian Pound</option>
             </InputSelect>
         </div>
         <div class="mb-3">

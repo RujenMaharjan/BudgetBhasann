@@ -1,6 +1,127 @@
 @page "/debthistory"
-<h3>DebtHistory</h3>
+@using BudgetBhasan.Models
+@using BudgetBhasan.Services
+
+@inject Database DatabaseService
+
+<link href="css/DebtHistory.css" rel="stylesheet" />
+
+<div class="debthistory-container">
+    <h2>Debt History</h2>
+    <div class="summary-cards">
+        <div class="card">
+            <h3>Total Debts Taken</h3>
+            <p>@totalDebtsTaken</p>
+        </div>
+        <div class="card">
+            <h3>Total Debts Paid</h3>
+            <p>@totalDebtsPaid</p>
+        </div>
+    </div>
+
+    <h3>Debt Transactions</h3>
+    @if (!debts.Any())
+    {
+        <p>No paid debts found.</p>
+    }
+    else
+    {
+        <table class="transaction-table">
+            <thead>
+                <tr>
+                    <th>Taken From</th>
+                    <th>
+                        Date Taken 
+                        <button @onclick="SortByDateTakenAsc">↑</button>
+                        <button @onclick="SortByDateTakenDesc">↓</button>
+                    </th>
+                    <th>
+                        Due Date
+                        <button @onclick="SortByDueDateAsc">↑</button>
+                        <button @onclick="SortByDueDateDesc">↓</button>
+                    </th>
+                    <th>
+                        Amount
+                        <button @onclick="SortByAmountAsc">↑</button>
+                        <button @onclick="SortByAmountDesc">↓</button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var debt in debts)
+                {
+                    <tr>
+                        <td>@debt.TakenFrom</td>
+                        <td>@debt.DateTaken.ToString("yyyy/MM/dd")</td>
+                        <td>@debt.DueDate.ToString("yyyy/MM/dd")</td>
+                        <td>@prefferedCurrency @debt.Amount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
 
 @code {
-    //Under Construction
+    private List<Debt> debts = new List<Debt>();
+    private int totalDebtsTaken;
+    private int totalDebtsPaid;
+    private string prefferedCurrency;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDebtDataAsync();
+    }
+
+    private async Task LoadDebtDataAsync()
+    {
+        try
+        {
+            var allDebts = await DatabaseService.GetAllDebtsAsync();
+
+            // All debts
+            totalDebtsTaken = allDebts.Count;
+
+            // Paid debts
+            debts = allDebts.Where(d => d.IsPaid == "true").ToList();
+            totalDebtsPaid = debts.Count;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading debt history: {ex.Message}");
+            debts = new List<Debt>();
+            totalDebtsTaken = 0;
+            totalDebtsPaid = 0;
+        }
+    }
+
+    private void SortByDateTakenAsc()
+    {
+        debts = debts.OrderBy(d => d.DateTaken).ToList();
+    }
+
+    private void SortByDateTakenDesc()
+    {
+        debts = debts.OrderByDescending(d => d.DateTaken).ToList();
+    }
+
+    private void SortByDueDateAsc()
+    {
+        debts = debts.OrderBy(d => d.DueDate).ToList();
+    }
+
+    private void SortByDueDateDesc()
+    {
+        debts = debts.OrderByDescending(d => d.DueDate).ToList();
+    }
+
+    private void SortByAmountAsc()
+    {
+        debts = debts.OrderBy(d => d.Amount).ToList();
+    }
+
+    private void SortByAmountDesc()
+    {
+        debts = debts.OrderByDescending(d => d.Amount).ToList();
+    }
 }

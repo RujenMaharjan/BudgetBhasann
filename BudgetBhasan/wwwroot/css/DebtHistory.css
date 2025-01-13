@@ -1,5 +1,5 @@
 /* General styles */
-.account-debit-container {
+.debthistory-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
@@ -44,21 +44,6 @@ h3 {
     margin: 10px 0;
 }
 
-.card button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    background-color: #4caf50; /* Medium green background */
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.card button:hover {
-    background-color: #388e3c; /* Darker green on hover */
-}
-
 /* Transaction table */
 .transaction-table {
     width: 100%;
@@ -87,7 +72,7 @@ h3 {
     color: #2e7d32; /* Dark green text */
 }
 
-/* Loading and no transactions message */
+/* No debts message */
 p {
     text-align: center;
     color: #2e7d32; /* Dark green text */

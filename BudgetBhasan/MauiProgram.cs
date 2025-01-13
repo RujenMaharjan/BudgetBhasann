@@ -11,7 +11,10 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
-            .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+            });
 
         builder.Services.AddMauiBlazorWebView();
 
@@ -20,11 +23,13 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
+        // Register MudBlazor services
+        builder.Services.AddMudServices();
+
         // Register Database as a singleton
         builder.Services.AddSingleton<Database>();
-        
 
-        // Register AuthenticationService (already included in your code)
+        // Register AuthenticationService
         builder.Services.AddSingleton<AuthenticationService>();
 
         return builder.Build();
