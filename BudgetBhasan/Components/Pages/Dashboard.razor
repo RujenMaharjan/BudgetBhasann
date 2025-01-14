@@ -19,6 +19,21 @@
     </MudMenu>
 </div>
 
+<div class="d-flex justify-space-between mb-4">
+    <MudCard Class="pa-4 ma-2" Style="width: 45%;">
+        <MudCardContent>
+            <h4>Total Transactions</h4>
+            <MudText Typo="Typo.h5">@totalTransactionCount</MudText>
+        </MudCardContent>
+    </MudCard>
+    <MudCard Class="pa-4 ma-2" Style="width: 45%;">
+        <MudCardContent>
+            <h4>Total Transaction Amount</h4>
+            <MudText Typo="Typo.h5">@prefferedCurrency @totalTransactionAmount</MudText>
+        </MudCardContent>
+    </MudCard>
+</div>
+
 <MudPaper Class="pa-4 mb-4">
     <MudDateRangePicker @bind-DateRange="dateRange" 
                         Label="Filter by Date Range" 
@@ -68,17 +83,34 @@
     private List<ChartSeries> inflowSeries = new();
     private List<ChartSeries> debtSeries = new();
     private User currentUser;
+    private int totalTransactionCount;
+    private double totalTransactionAmount;
+    private string prefferedCurrency;
 
     // Store full data sets
     private List<Outflow> allOutflows = new();
     private List<Inflow> allInflows = new();
     private List<Debt> allDebts = new();
+    
+    private void UpdateSummary()
+    {
+        totalTransactionCount = allOutflows.Count + allInflows.Count + allDebts.Count;
+        totalTransactionAmount = allOutflows.Sum(o => o.Amount) 
+                                 + allInflows.Sum(i => i.Amount) 
+                                 + allDebts.Sum(d => d.Amount);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         currentUser = await DatabaseService.GetUserAsync();
         await LoadAllData();
         await UpdateCharts();
+        UpdateSummary();
+        
+        if (currentUser != null)
+        {
+            prefferedCurrency = currentUser.prefferedCurrency;
+        }
     }
     
     private void Logout()
