@@ -26,6 +26,10 @@
         <input type="date" @bind="dueDate" />
     </div>
     <button @onclick="SaveDebt">Save</button>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+    <p style="color: red;">@errorMessage</p>
+    }
 </div>
 
 @code {
@@ -33,10 +37,17 @@
     private int amount;
     private DateTime dateTaken = DateTime.Now;
     private DateTime dueDate= DateTime.Now;
+    private string errorMessage;
     
     //When Save button is clicked This method is called
     private async Task SaveDebt()
     {
+        if (string.IsNullOrWhiteSpace(takenFrom) || amount <= 0)
+        {
+            errorMessage = "Please fill in all required fields.";
+            return;
+        }
+
         try
         {
             var debt = new Debt
@@ -48,7 +59,7 @@
                 IsPaid = "False"
             };
 
-            //Add the debt to debt table of database
+            //Adds the debt to debt table of database
             var success = await DatabaseService.AddDebtAsync(debt);
 
             if (success)

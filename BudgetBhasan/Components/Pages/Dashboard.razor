@@ -87,11 +87,13 @@
     private double totalTransactionAmount;
     private string prefferedCurrency;
 
-    // Store full data sets
+    // Stores data of inflow, outflow and debt table in a list.
     private List<Outflow> allOutflows = new();
     private List<Inflow> allInflows = new();
     private List<Debt> allDebts = new();
     
+    
+    //This method is used to send values to card on top of the page.
     private void UpdateSummary()
     {
         totalTransactionCount = allOutflows.Count + allInflows.Count + allDebts.Count;
@@ -99,37 +101,42 @@
                                  + allInflows.Sum(i => i.Amount) 
                                  + allDebts.Sum(d => d.Amount);
     }
-
+    
+    
     protected override async Task OnInitializedAsync()
     {
         currentUser = await DatabaseService.GetUserAsync();
         await LoadAllData();
         await UpdateCharts();
         UpdateSummary();
-        
         if (currentUser != null)
         {
+            //This fetches preffered currency of user.
             prefferedCurrency = currentUser.prefferedCurrency;
         }
     }
     
+    //This method is for logout.
     private void Logout()
     {
-        NavigationManager.NavigateTo("/login", true);  // Added true for force reload
+        NavigationManager.NavigateTo("/login", true);  
     }
-
+    
+    //This method fetches data from Tables.
     private async Task LoadAllData()
     {
         allOutflows = await DatabaseService.GetAllOutflowsAsync();
         allInflows = await DatabaseService.GetAllInflowsAsync();
         allDebts = await DatabaseService.GetAllDebtsAsync();
     }
-
+    
+    //This method is called when datwe filter is applied
     private async Task ApplyDateFilter()
     {
         await UpdateCharts();
     }
-
+    
+    //This method is used to update charts according to date filter provided by user.
     private async Task UpdateCharts()
     {
         var filteredOutflows = FilterDataByDateRange(allOutflows);
@@ -142,14 +149,18 @@
 
         StateHasChanged();
     }
-
+    
+    /*This method filters a list of items based on a given date range.
+    It extracts the relevant date property from each item using pattern matching 
+    and includes only those items whose dates fall within the specified range*/
     private List<T> FilterDataByDateRange<T>(List<T> data) where T : class
     {
         if (!dateRange.Start.HasValue || !dateRange.End.HasValue)
             return data;
-
+        
+        
         var startDate = dateRange.Start.Value.Date;
-        var endDate = dateRange.End.Value.Date.AddDays(1).AddTicks(-1);
+        var endDate = dateRange.End.Value.Date;
 
         return data.Where(item =>
         {
@@ -163,7 +174,8 @@
             return itemDate >= startDate && itemDate <= endDate;
         }).ToList();
     }
-
+    
+    //This method provides list of top 5 outflows with filtered date if user has applied date filter.
     private async Task UpdateOutflowChart(List<Outflow> filteredOutflows)
     {
         var topOutflows = filteredOutflows
@@ -188,7 +200,8 @@
             }
         };
     }
-
+    
+    //This method provides list of top 5 inflows with filtered date if user has applied date filter.
     private async Task UpdateInflowChart(List<Inflow> filteredInflows)
     {
         var groupedInflows = filteredInflows
@@ -205,7 +218,8 @@
         inflowLabels = groupedInflows.Select(g => g.Label).ToArray();
         inflowData = groupedInflows.Select(g => (double)g.TotalAmount).ToArray();
     }
-
+    
+    //This method provides list of top 5 debts with filtered date if user has applied date filter.
     private async Task UpdateDebtChart(List<Debt> filteredDebts)
     {
         var topDebts = filteredDebts

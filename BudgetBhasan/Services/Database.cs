@@ -8,6 +8,7 @@ public class Database
 
     public Database()
     {
+        //Database creation code
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "budgetbhasan.db");
         _database = new SQLiteAsyncConnection(dbPath);
 
@@ -18,7 +19,7 @@ public class Database
         _database.CreateTableAsync<Debt>().Wait();
     }
 
-    // User Methods
+    // User Methods to add and update in User table of database.
     public async Task<bool> AddUserAsync(User user)
     {
         try
@@ -57,7 +58,7 @@ public class Database
         }
     }
 
-    // Inflow Methods
+    // Inflow Methods to add and update in Inflow table in database.
     public async Task<bool> AddInflowAsync(Inflow inflow)
     {
         try
@@ -83,7 +84,7 @@ public class Database
         }
     }
 
-    // Outflow Methods
+    // Outflow Methods to update in Oytflow table in database.
     public async Task<bool> AddOutflowAsync(Outflow outflow)
     {
         try
@@ -122,7 +123,7 @@ public class Database
         }
     }
     
-    // Debt Method
+    // Debt Method to update and add in debt table of database.
     public async Task<bool> AddDebtAsync(Debt debt)
     {
         try
@@ -174,7 +175,7 @@ public class Database
         }
     }
     
-    //get user data
+    //get user data from user table of database
     public async Task<User> GetUserAsync()
     {
         return await _database.Table<User>().FirstOrDefaultAsync();

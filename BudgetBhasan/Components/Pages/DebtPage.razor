@@ -91,7 +91,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserBalanceAsync();
+        //await LoadUserBalanceAsync();
         await LoadDebtsAsync();
         var users = await DatabaseService.GetAllUsersAsync();
         var currentUser = users.FirstOrDefault();
@@ -100,39 +100,16 @@
             currentBalance = currentUser.Balance;
             prefferedCurrency = currentUser.prefferedCurrency;
         }
-        //if there is no user in database
+        //if there is no user in database Current Balance is defaulted to 0.
         else
         {
             currentBalance = 0;
-            Console.WriteLine("No user found in the database.");
+            //Console.WriteLine("No user found in the database.");
         }
     }
 
-    private async Task LoadUserBalanceAsync()
-    {
-        try
-        {
-            var users = await DatabaseService.GetAllUsersAsync();
-            var currentUser = users.FirstOrDefault();
-
-            if (currentUser != null)
-            {
-                currentBalance = currentUser.Balance;
-                prefferedCurrency = currentUser.prefferedCurrency;
-            }
-            else
-            {
-                currentBalance = 0;
-                Console.WriteLine("No user found in the database.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching user balance: {ex.Message}");
-            currentBalance = 0;
-        }
-    }
-
+    
+    //This method brings rows from debt table where isPaid is "False".
     private async Task LoadDebtsAsync()
     {
         try
@@ -150,7 +127,8 @@
             numberOfUnpaidDebts = 0;
         }
     }
-
+    
+    //This method is called when repay button is clicked. This method asks user confirmation if user really wants to clear their debt.
     private async Task ConfirmRepayment(Debt debt)
     {
         bool isConfirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to repay Rs {debt.Amount}?");
@@ -159,15 +137,18 @@
             await HandleRepayment(debt);
         }
     }
-
+    
+    //This method is called when user clicks ok in the confirmation message.
     private async Task HandleRepayment(Debt debt)
     {
+        //Firstly balance is checked if debt repayment can be done.
         if (currentBalance >= debt.Amount)
         {
             try
             {
                 currentBalance -= debt.Amount;
-
+                
+                //After user balance is deducted it is updated in User table and isPaid is changed to true.
                 var users = await DatabaseService.GetAllUsersAsync();
                 var currentUser = users.FirstOrDefault();
                 if (currentUser != null)
@@ -188,7 +169,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error handling repayment: {ex.Message}");
+                //Console.WriteLine($"Error handling repayment: {ex.Message}");
                 errorMessage = "An error occurred while processing your repayment.";
             }
         }

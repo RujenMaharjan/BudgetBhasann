@@ -1,21 +1,18 @@
-/* General styles */
 h3 {
-    color: #2e7d32; /* Dark green text */
+    color: #2e7d32; 
     text-align: center;
     margin-bottom: 20px;
 }
 
-/* Form container */
 .add-money-form {
     max-width: 500px;
     margin: 0 auto;
     padding: 20px;
     border-radius: 10px;
-    background-color: #e8f5e9; /* Very light green background */
+    background-color: #e8f5e9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Form fields */
 .add-money-form div {
     margin-bottom: 15px;
 }
@@ -23,7 +20,7 @@ h3 {
 .add-money-form label {
     display: block;
     margin-bottom: 5px;
-    color: #2e7d32; /* Dark green text */
+    color: #2e7d32; 
     font-weight: bold;
 }
 
@@ -31,18 +28,18 @@ h3 {
 .add-money-form textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #a5d6a7; /* Light green border */
+    border: 1px solid #a5d6a7; 
     border-radius: 5px;
     font-size: 16px;
-    color: #2e7d32; /* Dark green text */
-    background-color: #f0faf0; /* Light green background */
+    color: #2e7d32; 
+    background-color: #f0faf0; 
 }
 
 .add-money-form input:focus,
 .add-money-form textarea:focus {
-    border-color: #66bb6a; /* Medium green border on focus */
+    border-color: #66bb6a; 
     outline: none;
-    box-shadow: 0 0 5px rgba(102, 187, 106, 0.5); /* Green shadow on focus */
+    box-shadow: 0 0 5px rgba(102, 187, 106, 0.5);
 }
 
 /* Button */
@@ -51,7 +48,7 @@ h3 {
     padding: 10px;
     border: none;
     border-radius: 5px;
-    background-color: #4caf50; /* Medium green background */
+    background-color: #4caf50; 
     color: white;
     font-size: 16px;
     cursor: pointer;
@@ -59,5 +56,5 @@ h3 {
 }
 
 .add-money-form button:hover {
-    background-color: #388e3c; /* Darker green on hover */
+    background-color: #388e3c; 
 }

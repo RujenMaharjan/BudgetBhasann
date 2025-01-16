@@ -51,10 +51,11 @@
             return;
         }
 
-        // getting the only user
+        // getting the user from database
         var users = await DatabaseService.GetAllUsersAsync();
         var user = users.FirstOrDefault();
-
+        
+        //checking if user table is empty
         if (user == null)
         {
             errorMessage = "User not found. Please ensure the database is set up correctly.";

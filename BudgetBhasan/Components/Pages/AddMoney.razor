@@ -30,6 +30,10 @@
         <input type="date" @bind="transactionDate" />
     </div>
     <button @onclick="AddCash">Add Money</button>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+    <p style="color: red;">@errorMessage</p>
+    }
 </div>
 
 @code {
@@ -37,11 +41,19 @@
     private int amount;
     private string label;
     private string note;
+    private string errorMessage;
     private DateTime transactionDate = DateTime.Today;
 
     private async Task AddCash()
     {
-        // Retrieve the only user from the database
+        if (string.IsNullOrWhiteSpace(transactionTitle) || amount <= 0)
+        {
+            errorMessage = "Please fill in all required fields.";
+            return;
+        }
+        
+        
+        // Get the only user from the database
         var users = await DatabaseService.GetAllUsersAsync();
         var currentUser = users.FirstOrDefault();
 
@@ -50,14 +62,14 @@
             Console.WriteLine("No user found in the database.");
             return;
         }
-
-        // Print current user details in terminal for debugging
-        Console.WriteLine($"User Found: Id={currentUser.Id}, Balance={currentUser.Balance}");
+        
 
         // Update user balance in User table
         currentUser.Balance += amount;
         var updateSuccess = await DatabaseService.UpdateUserAsync(currentUser);
-
+        
+        
+        //if update is unsuccesful 
         if (!updateSuccess)
         {
             Console.WriteLine("Failed to update user balance.");

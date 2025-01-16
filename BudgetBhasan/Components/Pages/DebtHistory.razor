@@ -48,6 +48,7 @@
                 </tr>
             </thead>
             <tbody>
+                //debts contain debts rows in which isPaid is True.
                 @foreach (var debt in debts)
                 {
                     <tr>
@@ -79,16 +80,16 @@
         {
             var allDebts = await DatabaseService.GetAllDebtsAsync();
 
-            // All debts
+            // All debts count
             totalDebtsTaken = allDebts.Count;
 
-            // Paid debts
+            // Paid debts counts all the debt in which isPaidis True.
             debts = allDebts.Where(d => d.IsPaid == "true").ToList();
             totalDebtsPaid = debts.Count;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading debt history: {ex.Message}");
+            //Console.WriteLine($"Error loading debt history: {ex.Message}");
             debts = new List<Debt>();
             totalDebtsTaken = 0;
             totalDebtsPaid = 0;
