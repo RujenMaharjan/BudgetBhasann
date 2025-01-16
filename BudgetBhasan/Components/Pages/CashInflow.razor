@@ -27,6 +27,10 @@
 </div>
 
 <h3>Inflow Transactions</h3>
+    <div class="search-container">
+        <input type="text" placeholder="Search by Transaction Title" @bind="searchQuery" />
+        <button @onclick="SearchTransactions">Search</button>
+    </div>
 <table class="transaction-table">
     <thead>
     <tr>
@@ -67,6 +71,7 @@
     private int totalTransactions => inflows.Count;
     private int totalIncome => inflows.Where(i => i.Amount > 0).Sum(i => i.Amount);
     private List<Inflow> filteredInflows = new();
+    private string searchQuery;
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,6 +96,24 @@
             //Console.WriteLine("No user found in the database.");
         }
     }
+    
+    private void SearchTransactions()
+    {
+        if (string.IsNullOrEmpty(searchQuery))
+        {
+            // If no query is entered, reset the filtered list
+            filteredInflows = inflows;
+        }
+        else
+        {
+            // Safely check for null TransactionTitle
+            filteredInflows = inflows
+                .Where(i => i.TansactionTitle != null && i.TansactionTitle.Contains(searchQuery))
+                .ToList();
+        }
+    }
+
+    
     //These method is called when sort button are clicked what they do is sort data in ascending and descending order.
     private void SortByDateAsc()
     {

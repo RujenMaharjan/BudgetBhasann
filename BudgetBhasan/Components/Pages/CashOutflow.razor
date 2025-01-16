@@ -27,6 +27,10 @@
     </div>
 
     <h3>Outflow Transactions</h3>
+    <div class="search-container">
+        <input type="text" placeholder="Search by Transaction Title" @bind="searchQuery" />
+        <button @onclick="SearchTransactions">Search</button>
+    </div>
     @if (filteredOutflows == null)
     {
         <p>Loading transactions...</p>
@@ -78,6 +82,7 @@
     private int currentBalance;
     private int totalTransactions => filteredOutflows?.Count ?? 0;
     private int totalExpenditure => filteredOutflows?.Sum(o => o.Amount) ?? 0;
+    private string searchQuery;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,6 +126,21 @@
         {
             currentBalance = 0; 
             //Console.WriteLine("Error fetching user balance.");
+        }
+    }
+    
+    private void SearchTransactions()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredOutflows = outflows; // Reset to all transactions if the query is empty
+        }
+        else
+        {
+            filteredOutflows = outflows
+                .Where(o => o.TansactionLabel != null && 
+                            o.TansactionLabel.Contains(searchQuery))
+                .ToList();
         }
     }
 
